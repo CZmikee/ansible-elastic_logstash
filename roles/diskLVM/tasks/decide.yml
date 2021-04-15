@@ -1,0 +1,56 @@
+---
+- name: set fact if already ready
+  tags: lvm
+  set_fact:
+    LVMnotPrepared: true
+
+- name: Check if sdb present
+  tags: lvm
+  stat:
+    path: /dev/sdb
+  register: sdbPresent
+
+- name: check if 3 nvme present
+  tags: lvm
+  stat:
+    path: /dev/nvme0n3
+  register: scratch3Present
+
+- name: check if 2 nvme present
+  tags: lvm
+  stat:
+    path: /dev/nvme0n2
+  register: scratch2Present
+
+- name: check if 1 nvme present
+  tags: lvm
+  stat:
+    path: /dev/nvme0n1
+  register: scratch1Present
+
+# if lvmprepared == fasle then set fact PrepIt , when prep it and scratchPresent
+
+- name: include persistent if matched
+#  when: sdbPresent.stat.exists is defined and sdbPresent.stat.exists and LVMnotPrepared is defined and LVMnotPrepared == true
+  when: sdbPresent.stat.exists and LVMnotPrepared is defined and LVMnotPrepared == true
+  tags: lvm
+  include: "perm.yml"
+
+- name: include 3 stripped scratches if matched
+#  when: scratch3Present is defined and scratch3Present.stat.exists and LVMnotPrepared is defined and LVMnotPrepared == true
+  when: scratch3Present.stat.exists and LVMnotPrepared is defined and LVMnotPrepared == true
+  tags: lvm
+  include: "scratch3.yml"
+
+- name: include 2 stripped scratches if matched
+#  when: scratch3Present is defined and scratch2Present is defined and scratch2Present.stat.exists and not scratch3Present.stat.exists and LVMnotPrepared is defined and LVMnotPrepared == true
+  when: scratch2Present.stat.exists and not scratch3Present.stat.exists and LVMnotPrepared is defined and LVMnotPrepared == true
+  tags: lvm
+  include: "scratch2.yml"
+
+- name: include 1 scratch if matched
+#  when: scratch3Present is defined and scratch2Present is defined and scratch1Present is defined and scratch1Present.stat.exists and not scratch3Present.stat.exists and not scratch2Present.stat.exists and LVMnotPrepared is defined and LVMnotPrepared == true
+  when: scratch1Present.stat.exists and not scratch3Present.stat.exists and not scratch2Present.stat.exists and LVMnotPrepared is defined and LVMnotPrepared == true
+  tags: lvm
+  include: "scratch1.yml"
+

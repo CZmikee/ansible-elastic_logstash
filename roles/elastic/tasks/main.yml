@@ -1,0 +1,103 @@
+---
+- name: Make directory for certificates
+  tags: config
+  file:
+    state: directory
+    path: /etc/elasticsearch/certs
+    owner: root
+    group: elasticsearch
+
+- name: place certs in the directory TEST
+  tags: config
+  when: "'gcp_example_test' in group_names"
+  copy:
+    decrypt: true
+    src: ../files/example-test.p12
+    dest: /etc/elasticsearch/certs/elastic-certificates.p12
+
+
+- name: place certs in the directory TEST
+  tags: config
+  when: "'gcp_elastic_test' in group_names"
+  copy:
+    decrypt: true
+    src: ../files/http-exaple-test.p12
+    dest: /etc/elasticsearch/certs/http.p12
+
+
+#Now we have to add passwords to Elasticsearch keystores and trustores. You can find passwords for keystores and trustores in Keepass. No_log not to show the pwd in console
+- name: Add transport keystore passwords to ElasticSearch
+  tags: config
+  #python expect not installed, just run workaround this via bash ;-)
+#  expect:
+#    command: /usr/share/elasticsearch/bin/elasticsearch-keystore add xpack.security.transport.ssl.keystore.secure_password -f
+#    responses:
+#      "Enter value for xpack.security.transport.ssl.keystore.secure_password:": "{{ transportSslKeystore }}"
+  shell: echo "{{ transportSslKeystore }}" | /usr/share/elasticsearch/bin/elasticsearch-keystore add xpack.security.transport.ssl.keystore.secure_password -f
+  no_log: true
+
+- name: Add transport truststore passwords to ElasticSearch
+  tags: config
+#  expect:
+#    command: /usr/share/elasticsearch/bin/elasticsearch-keystore add xpack.security.transport.ssl.truststore.secure_password -f
+#    responses:
+#      Enter value for xpack.security.transport.ssl.truststore.secure_password: "{{ transportSslTruststore }}"
+  shell: echo "{{ transportSslTruststore }}" | /usr/share/elasticsearch/bin/elasticsearch-keystore add xpack.security.transport.ssl.truststore.secure_password -f
+  no_log: true
+
+- name: Add transport keystore passwords to ElasticSearch
+  tags: config
+  shell: echo "{{ httpSslKeystore }}" | /usr/share/elasticsearch/bin/elasticsearch-keystore add xpack.security.http.ssl.keystore.secure_password -f
+  no_log: true
+
+##bkp old conf
+#- name: Copy original configuration file
+#  tags: config
+#  copy:
+#    src: /etc/elasticsearch/elasticsearch.yml
+#    dest: /etc/elasticsearch/elasticsearch.yml.original
+#    remote_src: true
+
+- name: Create data directory
+  tags: config
+  file:
+    state: directory
+    path: /data
+    owner: elasticsearch
+    group: elasticsearch
+
+- name: Push in the conf from template, in case of change, call restart, setPwd and check
+  tags: config
+  template:
+    src: ../templates/elasticsearch.j2
+    dest: /etc/elasticsearch/elasticsearch.yml
+  notify:
+    - restartElastic
+
+- name: try if curl with existing elastic user works, if not set it
+  run_once: true
+  uri:
+    url: https://{{ ansible_hostname }}:9200/_cluster/stats?pretty
+    user: elastic
+    password: "{{elastic}}"
+    method: GET
+    body_format: json
+    return_content: yes
+    validate_certs: no
+  register: checkPwdSet
+  ignore_errors: yes
+  changed_when: false
+
+- name: debug checkPwdSet
+  debug:
+    msg: "{{checkPwdSet}}"
+
+#check if PWD already set, if not include initialPwdSet.yml !
+- name: Init PWDs
+  run_once: true
+  include: ./initialPwdSet.yml
+  when: checkPwdSet.status|int == 401
+
+
+
+

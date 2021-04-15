@@ -1,0 +1,20 @@
+cluster.name: {{elasticClusterName}}
+node.name: {{ansible_hostname}}
+node.master: {{elasticNodeMaster}}
+node.data: {{elasticNodeData}}
+node.ingest: {{elasticNodeIngest}}
+path.data: /data
+path.logs: /var/log/elasticsearch
+network.host: {{ ansible_all_ipv4_addresses | ipaddr('10.0.0.0/8') | first }}
+discovery.seed_hosts: [ {% if 'gcp_elastic_cluster' in group_names %}{% for host in groups['gcp_elastic_cluster'] %}"{{ hostvars[host].ansible_fqdn }}"{{ '' if loop.last else ',' }}{% endfor %}{% elif 'gcp_elastic_test' in group_names %}{% for host in groups['gcp_elastic_test'] %}"{{ hostvars[host].ansible_fqdn }}"{{ '' if loop.last else ',' }}{% endfor %}{% endif %} ]
+cluster.initial_master_nodes: [ {% if 'gcp_elastic_cluster' in group_names %}{% for host in groups['gcp_elastic_cluster'] %}"{{ hostvars[host].ansible_hostname }}"{{ '' if loop.last else ',' }}{% endfor %}{% elif 'gcp_elastic_test' in group_names %}{% for host in groups['gcp_elastic_test'] %}"{{ hostvars[host].ansible_hostname }}"{{ '' if loop.last else ',' }}{% endfor %}{% endif %} ]
+xpack.security.enabled: true
+xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.verification_mode: certificate
+xpack.security.transport.ssl.keystore.path: certs/elastic-certificates.p12
+xpack.security.transport.ssl.truststore.path: certs/elastic-certificates.p12
+xpack.security.http.ssl.enabled: true
+xpack.security.http.ssl.keystore.path: certs/http.p12
+
+
+

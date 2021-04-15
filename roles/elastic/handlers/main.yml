@@ -1,0 +1,19 @@
+---
+- name: restartElastic
+  systemd:
+    name: elasticsearch
+    state: restarted
+
+
+
+#  expect:
+#    command: /usr/share/elasticsearch/bin/elasticsearch-setup-passwords interactive
+#    responses:
+#      elastic: "{{ elastic }}"
+#      apm_system: "{{apm_system}}"
+#      kibana_system: "{{kibana_system}}"
+#      logstash_system: "{{logstash_system}}"
+#      beats_system: "{{beats_system}}"
+#      remote_monitoring_user: "{{remote_monitoring_user}}"
+#  no_log: true
+

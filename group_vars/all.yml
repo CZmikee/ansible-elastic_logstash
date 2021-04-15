@@ -1,0 +1,3 @@
+---
+logstash_version: '7.x'
+logstash_enabled_on_boot: true

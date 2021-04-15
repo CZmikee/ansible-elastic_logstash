@@ -1,0 +1,28 @@
+---
+- name: Create a volume group on top of both nvme
+  lvg:
+    vg: "vg.{{VolumeGroup}}"
+    pvs: /dev/nvme0n1,/dev/nvme0n2
+    pesize: '32'
+
+- name: Create stripped cache pool logical volume
+  lvol:
+    vg: "vg.{{VolumeGroup}}"
+    lv: "lv.{{VolumeGroup}}"
+    size: 100%PVS
+    opts: -i2 -I16
+
+- name: Create an ext4 filesystem on /dev/nvme0n1
+  filesystem:
+    fstype: ext4
+    dev: "/dev/mapper/vg.{{VolumeGroup}}-lv.{{VolumeGroup}}"
+
+- name: Mount DataDir
+  mount:
+    path: /data/
+    src: "/dev/mapper/vg.{{VolumeGroup}}-lv.{{VolumeGroup}}"
+    fstype: ext4
+    opts: defaults,noatime,nofail
+    state: mounted
+
+

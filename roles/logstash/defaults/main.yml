@@ -1,0 +1,14 @@
+---
+logstash_enabled_on_boot: true
+ca_cert_path: "../files/example-ca.pem"
+java_Xms: "4g"
+java_Xmx: "6g"
+data_path: "/data/logstash"
+log_path: "/var/log/logstash"
+
+
+inbound_workers: 8
+transaction_workers: 8
+gwaccesslog_workers: 8
+accesslog_workers: 8
+output_workers: 24

@@ -1,0 +1,3 @@
+---
+terraBinPath: "/data/terraform"
+terraBucket: "exampleBucketName"

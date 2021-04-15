@@ -1,0 +1,21 @@
+---
+- name: Push in the repo template
+  tags: install
+  copy:
+    src: ../templates/elastic.repo
+    dest: /etc/yum.repos.d/elasticsearch.repo
+
+- name: import GPG key
+  tags: install
+  rpm_key:
+    key: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+
+- name: Install elastic via dnf
+  tags: install
+  dnf:
+    name: elasticsearch-7.10.2
+    state: present
+    enablerepo: elasticsearch
+    update_cache: true
+  notify: reloadDaemons

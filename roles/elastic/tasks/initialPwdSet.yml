@@ -1,0 +1,103 @@
+---
+- name: Stop Elastic
+  systemd:
+    name: elasticsearch
+    state: stopped
+
+- name: setInitPwd
+  run_once: true
+  shell: printf "initialPwd123" | /usr/share/elasticsearch/bin/elasticsearch-keystore add -x "bootstrap.password" -f
+
+- name: restartElastic
+  systemd:
+    name: elasticsearch
+    state: restarted
+
+
+- name: Create kibana_user password
+  uri:
+    url: "https://{{ansible_fqdn}}:9200/_xpack/security/user/kibana_system/_password"
+    user: elastic
+    password: initialPwd123
+#    method: POST
+    method: PUT
+    body: { "password":"{{kibana_system}}" }
+    force_basic_auth: yes
+#    status_code: 201
+    body_format: json
+    return_content: yes
+    validate_certs: no
+
+#curl -uelastic:"initialPwd123" -XPUT -H 'Content-Type: application/json' 'https://elastic-test-1:9200/_xpack/security/user/kibana_system/_password' -d '{ "password":"fJ9Cud9QVjMCXvCw" }' -k
+
+- name: Create apm_system user password
+  uri:
+    url: "https://{{ansible_fqdn}}:9200/_xpack/security/user/apm_system/_password"
+    user: elastic
+    password: initialPwd123
+#    method: POST
+    method: PUT
+    validate_certs: no
+    body: { "password":"{{apm_system}}" }
+    force_basic_auth: yes
+#    status_code: 201
+    body_format: json
+    return_content: yes
+
+- name: Create logstash  password
+  uri:
+    url: "https://{{ansible_fqdn}}:9200/_xpack/security/user/logstash_system/_password"
+    user: elastic
+    password: initialPwd123
+#    method: POST
+    method: PUT
+    validate_certs: no
+    body: { "password":"{{logstash_system}}" }
+    force_basic_auth: yes
+#    status_code: 201
+    body_format: json
+    return_content: yes
+
+- name: Create beats password
+  uri:
+    url: "https://{{ansible_fqdn}}:9200/_xpack/security/user/beats_system/_password"
+    user: elastic
+    password: initialPwd123
+#    method: POST
+    method: PUT
+    body: { "password":"{{beats_system}}" }
+    force_basic_auth: yes
+#    status_code: 201
+    body_format: json
+    validate_certs: no
+    return_content: yes
+
+- name: Create remote password
+  uri:
+    url: "https://{{ansible_fqdn}}:9200/_xpack/security/user/remote_monitoring_user/_password"
+    user: elastic
+    validate_certs: no
+    password: initialPwd123
+#    method: POST
+    method: PUT
+    body: { "password":"{{remote_monitoring_user}}" }
+    force_basic_auth: yes
+#    status_code: 201
+    body_format: json
+    return_content: yes
+
+
+
+- name: Set real elastic password
+  uri:
+    url: "https://{{ansible_fqdn}}:9200/_xpack/security/user/elastic/_password"
+    user: elastic
+    password: initialPwd123
+#    method: POST
+    method: PUT
+    body: { "password":"{{elastic}}" }
+    force_basic_auth: yes
+#    status_code: 201
+    body_format: json
+    return_content: yes
+    validate_certs: no

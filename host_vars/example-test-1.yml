@@ -1,0 +1,6 @@
+---
+#Set which roles are pushed to the template for the specific host (matching filename)
+elasticNodeMaster: false
+elasticNodeData: true
+elasticNodeIngest: true
+

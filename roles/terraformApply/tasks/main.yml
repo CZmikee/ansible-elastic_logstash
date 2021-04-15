@@ -1,0 +1,41 @@
+---
+
+- name: bug in version of Ansible 2.9, relative path does not work, workaround
+  shell: pwd
+  register: currentPath
+
+
+- name: Init terra
+  shell:
+    chdir: "{{currentPath.stdout}}/terraform/{{terraDir}}/"
+    cmd: "{{terraBinPath}} init"
+
+#fetch copy of plan and state, then deploy
+- name: Fetch Terra plan and state
+  shell: "gsutil -m cp -r gs://{{terraBucket}}/{{terraDir}}.state {{currentPath.stdout}}/terraform/{{terraDir}}/terraform.tfstate"
+  ignore_errors: true
+
+- name: safety fallback for empty state file
+  copy:
+    content: ""
+    dest: "{{currentPath.stdout}}/terraform/{{terraDir}}/terraform.tfstate"
+    force: false
+
+- name: Create via terra
+  tags: terra
+  terraform:
+    binary_path: "{{terraBinPath}}"
+    project_path: "{{currentPath.stdout}}/terraform/{{terraDir}}/"
+    state_file: "{{currentPath.stdout}}/terraform/{{terraDir}}/terraform.tfstate"
+    state: "present"
+  register: terraOut
+
+
+- name: debug terraOut
+  debug:
+    msg: "{{terraOut}}"
+
+#push changed state back to bucket
+- name: Push Terra state
+  shell: "gsutil cp {{currentPath.stdout}}/terraform/{{terraDir}}/terraform.tfstate  gs://{{terraBucket}}/{{terraDir}}.state"
+

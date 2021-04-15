@@ -1,0 +1,33 @@
+# Configuration documentation
+# https://www.elastic.co/guide/en/logstash/7.9/configuration.html
+# ==================================================================================================
+input {
+  pipeline { address => output }
+}
+# ==================================================================================================
+filter {
+  mutate {
+    convert => {
+      "@version" => "string"
+      "duration" => "integer"
+      "[request][size]" => "integer"
+      "[response][size]" => "integer"
+      "[response][statusCode]" => "integer"
+      "[serviceCustomData][healthCheck]" => "boolean"
+      "[serviceCustomData][upstreamServiceTime]" => "integer"
+    }
+    uppercase => ["[request][httpSchema]"]
+    lowercase => ["sourceEnvironment"]
+  }
+}
+# ==================================================================================================
+output {
+  elasticsearch {
+    ssl => true
+    hosts => [{% if 'gcp_example_test' in group_names %}{% for host in groups['gcp_example_test'] %}"{{ ansible_fqdn }}:9200"{{ '' if loop.last else ',' }}{% endfor %}{% endif %}]
+    index => "%{type}-%{sourceEnvironment}-%{+yyyyMMdd}"
+    user => "logstash_system"
+    password => "{{ logstash_system }}"
+    cacert => "/etc/pki/ca-trust/extracted/pem/elasticsearch-ca.pem"
+  }
+}

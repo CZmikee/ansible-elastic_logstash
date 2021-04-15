@@ -1,0 +1,23 @@
+# Persistent disks    
+
+- name: Create a volume group on top of /dev/sdb
+  lvg:
+    vg: "vg.{{VolumeGroup}}"
+    pvs: /dev/sdb
+- name: Create cache pool logical volume
+  lvol:
+    vg: "vg.{{VolumeGroup}}"
+    lv: "lv.{{VolumeGroup}}"
+    size: 100%PVS
+- name: Create an ext4 filesystem on /dev/nvme0n1
+  filesystem:
+    fstype: ext4
+    dev: "/dev/mapper/vg.{{VolumeGroup}}-lv.{{VolumeGroup}}"
+- name: Mount DataDir
+  mount:
+    path: /data/
+    src: "/dev/mapper/vg.{{VolumeGroup}}-lv.{{VolumeGroup}}"
+    fstype: ext4
+    opts: defaults,noatime
+    state: mounted
+

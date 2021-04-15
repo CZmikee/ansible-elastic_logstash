@@ -1,0 +1,29 @@
+# This file is where you define your pipelines. You can define multiple.
+# For more information on multiple pipelines, see the documentation:
+#   https://www.elastic.co/guide/en/logstash/current/multiple-pipelines.html
+
+# main inbound pipeline with routing to pipelines
+- pipeline.id: inbound
+  path.config: "/etc/logstash/pipeline/inbound.pipeline"
+  pipeline.workers: {{inbound_workers}}
+
+# transaction event pipeline
+- pipeline.id: transaction
+  path.config: "/etc/logstash/pipeline/transaction.pipeline"
+  pipeline.workers: {{transaction_workers}}
+
+# gateway (envoy) access log pipeline
+- pipeline.id: gwaccesslog
+  path.config: "/etc/logstash/pipeline/gwaccesslog.pipeline"
+  pipeline.workers: {{gwaccesslog_workers}}
+
+# netty access log pipeline
+- pipeline.id: accesslog
+  path.config: "/etc/logstash/pipeline/accesslog.pipeline"
+  pipeline.workers: {{accesslog_workers}}
+
+# push events to elasticsearch pipeline
+- pipeline.id: output
+  path.config: "/etc/logstash/output.pipeline"
+  pipeline.workers: {{output_workers}}
+

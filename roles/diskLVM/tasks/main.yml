@@ -1,0 +1,21 @@
+- name: install lvm
+  tags: lvm
+  yum:
+    name: lvm2
+    state: present
+
+- name: check if LVM set
+  tags: lvm
+  shell: lvdisplay
+  register: lvdisp
+  changed_when: false
+
+- name: set LVname
+  set_fact:
+    LVname: "lv.{{ VolumeGroup }}"
+
+- name: Not ready, decide which to prep
+  tags: lvm
+  include: decide.yml
+  when: LVname not in lvdisp.stdout
+

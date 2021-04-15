@@ -1,0 +1,4 @@
+---
+elasticNodeMaster: true
+elasticNodeData: true
+elasticNodeIngest: true

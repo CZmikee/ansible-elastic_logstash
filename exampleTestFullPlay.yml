@@ -1,0 +1,56 @@
+- name: Run terraform to create Infra
+  hosts: localhost
+  tags: terra
+  vars:
+    terraDir: "terraExampleTest"
+  roles:
+    - terraformApply
+
+
+
+- name: Install Elastic test nodes
+  hosts: gcp_example_test
+  become: true
+  tags: elastic
+  pre_tasks:
+    - name: Install OpenJDK Java for logstash
+      package:
+        name: "java-1.8.0-openjdk"
+        state: present
+
+  roles:
+    - diskLVM
+    - elastic
+
+  post_tasks:
+    - name: checkOutput
+      uri:
+        url: https://{{ ansible_fqdn }}:9200/_cluster/stats?pretty
+        user: elastic
+        password: "{{elastic}}"
+        method: GET
+        body_format: json
+        return_content: yes
+        validate_certs: no
+      register: checkOutput
+      ignore_errors: yes
+      changed_when: false
+      tags: check
+
+    - name: ReportElasticsearch
+      fail:
+        msg: |
+          Elastic is not Ok
+          Output of check:
+          {{ checkOutput.content }}
+      when: "checkOutput.json._nodes.failed != 0 and checkOutput is defined"
+      tags: check
+
+
+
+- name: Install logstash on nodes
+  hosts: gcp_example_test
+  become: true
+  tags: logstash
+  roles:
+    - logstash

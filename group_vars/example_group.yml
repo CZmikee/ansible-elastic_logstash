@@ -1,0 +1,17 @@
+---
+#Variable to use for LVM names:
+VolumeGroup: exampleLV
+elasticClusterName: exampleCluster
+
+#System users:
+elastic: password123
+apm_system: password234
+kibana_system: password345
+logstash_system: password456
+beats_system: password567
+remote_monitoring_user: password678
+
+#Keystore passwords:
+transportSslKeystore: keystorePwd123
+transportSslTruststore: trustorePwd123
+httpSslKeystore: httpKeystorePwd123
